@@ -20,8 +20,6 @@ class AuctionSniperEndToEndTest extends Specification with Matchers {
       application.showsSniperHasLostAuction()
       success
     }
-
-
   }
 
   // Additional cleanup

@@ -91,6 +91,6 @@ class SingleMessageListener extends MessageListener with MustMatchers {
 object Constants {
   val XMPPHostname = "localhost"
 
-  val StatusJoining = ""
+  val StatusJoining = "Joining"
   val StatusLost = ""
 }
