@@ -18,6 +18,7 @@ class AuctionSniperEndToEndTest extends Specification with Matchers {
       auction.hasReceivedJoinRequestFromSniper()
       auction.announceClosed()
       application.showsSniperHasLostAuction()
+      success
     }
 
 
