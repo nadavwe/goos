@@ -11,6 +11,7 @@ import com.objogate.wl.swing.driver.ComponentDriver._
 import org.hamcrest.Matchers._
 import org.specs2.matcher.MustMatchers
 
+import com.wix.nadavwe.goos.e2es.Constants
 
 class ApplicationRunner {
   private val SNIPER_ID = "sniper"
@@ -30,11 +31,11 @@ class ApplicationRunner {
     thread.setDaemon(true)
     thread.start()
     driver = new AuctionSniperDriver(1000)
-    driver.showsSniperStatus(Constants.StatusJoining);
+    driver.showsSniperStatus(Main.StatusJoining);
   }
 
   def showsSniperHasLostAuction() {
-    driver.showsSniperStatus(Constants.StatusLost)
+    driver.showsSniperStatus(Main.StatusLost)
   }
 
   def stop() {
@@ -53,8 +54,7 @@ class AuctionSniperDriver(timeoutMillis:Int) extends JFrameDriver(
 }
 
 class FakeAuctionServer(val itemId:String) {
-  val ITEM_ID_AS_LOGIN = s"auction-$itemId"
-  val AUCTION_RESOURCE = "Auction"
+  import Main._
   private val AUCTION_PASSWORD = "auction"
 
   private val connection = new XMPPConnection(Constants.XMPPHostname)
@@ -63,10 +63,10 @@ class FakeAuctionServer(val itemId:String) {
 
   def startSellingItem() {
     connection.connect()
-    connection.login(ITEM_ID_AS_LOGIN, AUCTION_PASSWORD, AUCTION_RESOURCE)
+    connection.login(ITEM_ID_AS_LOGIN.format(itemId), AUCTION_PASSWORD, AUCTION_RESOURCE)
     connection.getChatManager().addChatListener(
         new ChatManagerListener() {
-          def chatCreated(chat:Chat, createdLocally:Boolean) {
+          override def chatCreated(chat:Chat, createdLocally:Boolean) {
             currentChat = chat
             chat.addMessageListener(messageListener)
           }
@@ -83,14 +83,8 @@ class SingleMessageListener extends MessageListener with MustMatchers {
   private val messages = new ArrayBlockingQueue[Message](1)
   def processMessage(chat:Chat, message:Message) { messages.add(message) }
   def receivesAMessage() {
-    messages.poll(5, TimeUnit.SECONDS) must not beNull
+    (messages.poll(5, TimeUnit.SECONDS) aka "polled message" must not beNull) orThrow
     }
 }
 
 
-object Constants {
-  val XMPPHostname = "localhost"
-
-  val StatusJoining = "Joining"
-  val StatusLost = ""
-}
