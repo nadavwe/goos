@@ -49,6 +49,10 @@ class Main(hostname:String, username:String, password:String) {
 
 }
 
+
+
+
+
 class MainWindow extends JFrame("AuctionSniper") {
   import com.wix.nadavwe.goos.Main._
 
