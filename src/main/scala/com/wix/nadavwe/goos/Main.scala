@@ -1,14 +1,13 @@
 package com.wix.nadavwe.goos
 
 import java.awt.Color
-import java.awt.event.{WindowEvent, WindowAdapter}
+import java.awt.event.{WindowAdapter, WindowEvent}
 import javax.swing.border.LineBorder
 import javax.swing.{JFrame, JLabel, SwingUtilities}
 
-import org.jivesoftware.smack.packet.Message
-import org.jivesoftware.smack.{Chat, MessageListener, XMPPConnection}
+import org.jivesoftware.smack.{Chat, XMPPConnection}
 
-class Main(hostname:String, username:String, password:String) {
+class Main(hostname:String, username:String, password:String) extends AuctionEventListener {
   import com.wix.nadavwe.goos.Main._
 
   private var notToBeGCed : Chat = _
@@ -28,7 +27,7 @@ class Main(hostname:String, username:String, password:String) {
     connection
   }
 
-  def disconnectWhenUICloses(connection: XMPPConnection) = ui.addWindowListener(
+  def disconnectWhenUICloses(connection: XMPPConnection) =   ui.addWindowListener(
     onWindowClosed {
       connection.disconnect()
     })
@@ -37,7 +36,7 @@ class Main(hostname:String, username:String, password:String) {
     disconnectWhenUICloses(connection)
     val chat = connection.getChatManager.createChat(
       auctionId(itemId),
-      SwingUtilities.invokeLater { ui.showStatus(Main.StatusLost) }
+      new AuctionMessageTranslator(this)
     )
 
     notToBeGCed = chat
@@ -47,11 +46,10 @@ class Main(hostname:String, username:String, password:String) {
 
   def auctionId(itemId:String) = AUCTION_ID_FORMAT.format(itemId, Constants.XMPPHostname)
 
+  override def auctionClosed() = SwingUtilities.invokeLater { ui.showStatus(Main.StatusLost) }
+
+  override def currentPrice(price: Int, increment: Int): Unit = ???
 }
-
-
-
-
 
 class MainWindow extends JFrame("AuctionSniper") {
   import com.wix.nadavwe.goos.Main._
@@ -75,7 +73,6 @@ class MainWindow extends JFrame("AuctionSniper") {
     sniperStatus.setText(status)
   }
 
-
 }
 
 
@@ -88,7 +85,6 @@ object Main {
 
   def BidCommandFormat(bid: Int) = s"SOLVersion: 1.1; Command: BID; Price: $bid;"
   val JoinCommandFormat = "SOLVersion: 1.1; Command: JOIN;"
-
 
 
   def main(args:Array[String]): Unit = main(args:_*)
@@ -110,10 +106,6 @@ object Main {
 
   implicit def createRunnable(f: => Unit): Runnable = new Runnable {
     override def run(): Unit = f
-  }
-
-  implicit def createMessageListener(f: => Unit) : MessageListener = new MessageListener {
-    override def processMessage(chat: Chat, message: Message): Unit = f
   }
 
   def onWindowClosed(f: => Unit): WindowAdapter = new WindowAdapter {

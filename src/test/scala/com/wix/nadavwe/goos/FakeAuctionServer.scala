@@ -42,7 +42,7 @@ class FakeAuctionServer(val itemId:String) extends MustThrownMatchers {
     currentChat must beWithParticipant(bidderId)
   }
 
-  def announceClosed()  { currentChat.sendMessage(new Message())  }
+  def announceClosed()  { currentChat.sendMessage("SOLVersion: 1.1; Event: CLOSE")  }
   def stop() { connection.disconnect()  }
 
 }
