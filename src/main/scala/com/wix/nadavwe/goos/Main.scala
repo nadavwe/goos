@@ -1,15 +1,14 @@
-package com.wix.nadavwe.goos.e2e
+package com.wix.nadavwe.goos
 
 import java.awt.Color
 import javax.swing.border.LineBorder
-import javax.swing.{JLabel, JFrame, SwingUtilities}
+import javax.swing.{JFrame, JLabel, SwingUtilities}
 
-import com.wix.nadavwe.goos.e2es.Constants
 import org.jivesoftware.smack.packet.Message
-import org.jivesoftware.smack.{MessageListener, Chat, XMPPConnection}
+import org.jivesoftware.smack.{Chat, MessageListener, XMPPConnection}
 
 class Main(hostname:String, username:String, password:String) {
-  import Main._
+  import com.wix.nadavwe.goos.Main._
 
   private var notToBeGCed : Chat = _
   private var ui : MainWindow = _
@@ -46,7 +45,7 @@ class Main(hostname:String, username:String, password:String) {
 }
 
 class MainWindow extends JFrame("AuctionSniper") {
-  import Main._
+  import com.wix.nadavwe.goos.Main._
 
   val sniperStatus = createLabel(StatusJoining)
 

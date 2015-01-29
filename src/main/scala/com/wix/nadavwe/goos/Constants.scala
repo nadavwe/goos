@@ -1,4 +1,4 @@
-package com.wix.nadavwe.goos.e2es
+package com.wix.nadavwe.goos
 
 object Constants {
   val XMPPHostname = "localhost"
