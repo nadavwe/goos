@@ -1,18 +1,12 @@
 package com.wix.nadavwe.goos
 
-import java.util.concurrent.{ArrayBlockingQueue, TimeUnit}
-
 import com.objogate.wl.swing.AWTEventQueueProber
 import com.objogate.wl.swing.driver.ComponentDriver._
 import com.objogate.wl.swing.driver.{JFrameDriver, JLabelDriver}
 import com.objogate.wl.swing.gesture.GesturePerformer
-import com.wix.nadavwe.goos.XmppMatchers._
-import org.jivesoftware.smack.packet.Message
-import org.jivesoftware.smack.{Chat, ChatManagerListener, MessageListener, XMPPConnection}
-import org.specs2.matcher.{Matcher, MustThrownMatchers}
 
 class ApplicationRunner {
-  import ApplicationRunner._
+  import com.wix.nadavwe.goos.ApplicationRunner._
 
   private var driver:AuctionSniperDriver = _
 
@@ -36,7 +30,7 @@ class ApplicationRunner {
     driver.showsSniperStatus(Main.StatusLost)
   }
 
-  def hasShownSniperIsBidding() = ???
+  def hasShownSniperIsBidding() = driver.showsSniperStatus(Main.StatusBidding)
 
   def stop() {
     if (driver != null) {

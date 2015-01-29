@@ -1,6 +1,7 @@
 package com.wix.nadavwe.goos
 
 import java.awt.Color
+import java.awt.event.{WindowEvent, WindowAdapter}
 import javax.swing.border.LineBorder
 import javax.swing.{JFrame, JLabel, SwingUtilities}
 
@@ -17,7 +18,7 @@ class Main(hostname:String, username:String, password:String) {
   private val connection = connectTo()
 
   private def startUserInterface() {
-    SwingUtilities.invokeAndWait({ui = new MainWindow})
+    SwingUtilities.invokeAndWait { ui = new MainWindow }
   }
 
   private def connectTo() : XMPPConnection = {
@@ -27,17 +28,21 @@ class Main(hostname:String, username:String, password:String) {
     connection
   }
 
+  def disconnectWhenUICloses(connection: XMPPConnection) = ui.addWindowListener(
+    onWindowClosed {
+      connection.disconnect()
+    })
+
   private def joinAuction(itemId:String)  {
+    disconnectWhenUICloses(connection)
     val chat = connection.getChatManager.createChat(
       auctionId(itemId),
-      new MessageListener {
-        override def processMessage(aChat:Chat, message: Message) = SwingUtilities.invokeLater(ui.showStatus(Main.StatusLost))
-      }
+      SwingUtilities.invokeLater { ui.showStatus(Main.StatusLost) }
     )
 
     notToBeGCed = chat
 
-    chat.sendMessage(new Message)
+    chat.sendMessage(JoinCommandFormat)
   }
 
   def auctionId(itemId:String) = AUCTION_ID_FORMAT.format(itemId, Constants.XMPPHostname)
@@ -71,10 +76,15 @@ class MainWindow extends JFrame("AuctionSniper") {
 
 
 object Main {
+
   val ARG_HOSTNAME = 0
   val ARG_USERNAME = 1
   val ARG_PASSWORD = 2
   val ARG_ITEM_ID = 3
+
+  def BidCommandFormat(bid: Int) = s"SOLVersion: 1.1; Command: BID; Price: $bid;"
+  val JoinCommandFormat = "SOLVersion: 1.1; Command: JOIN;"
+
 
 
   def main(args:Array[String]): Unit = main(args:_*)
@@ -88,6 +98,7 @@ object Main {
 
   val StatusJoining = "Joining"
   val StatusLost = "Lost"
+  val StatusBidding = "Bidding"
 
   val ITEM_ID_AS_LOGIN = "auction-%s"
   val AUCTION_RESOURCE = "Auction"
@@ -95,6 +106,14 @@ object Main {
 
   implicit def createRunnable(f: => Unit): Runnable = new Runnable {
     override def run(): Unit = f
+  }
+
+  implicit def createMessageListener(f: => Unit) : MessageListener = new MessageListener {
+    override def processMessage(chat: Chat, message: Message): Unit = f
+  }
+
+  def onWindowClosed(f: => Unit): WindowAdapter = new WindowAdapter {
+      override def windowClosed(e: WindowEvent): Unit = f
   }
 
 }
