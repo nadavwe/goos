@@ -8,7 +8,7 @@ import javax.swing.{JFrame, JLabel, SwingUtilities}
 import org.jivesoftware.smack.{Chat, XMPPConnection}
 
 class Main(hostname:String, username:String, password:String) extends AuctionEventListener {
-  import com.wix.nadavwe.goos.Main._
+  import Main._
 
   private var notToBeGCed : Chat = _
   private var ui : MainWindow = _
@@ -52,7 +52,7 @@ class Main(hostname:String, username:String, password:String) extends AuctionEve
 }
 
 class MainWindow extends JFrame("AuctionSniper") {
-  import com.wix.nadavwe.goos.Main._
+  import Main._
 
   val sniperStatus = createLabel(StatusJoining)
 
