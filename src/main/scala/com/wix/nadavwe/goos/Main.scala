@@ -7,7 +7,7 @@ import javax.swing.{JFrame, JLabel, SwingUtilities}
 
 import org.jivesoftware.smack.{Chat, XMPPConnection}
 
-class Main(hostname:String, username:String, password:String) extends AuctionEventListener {
+class Main(hostname:String, username:String, password:String) {
   import Main._
 
   private var notToBeGCed : Chat = _
@@ -34,21 +34,23 @@ class Main(hostname:String, username:String, password:String) extends AuctionEve
 
   private def joinAuction(itemId:String)  {
     disconnectWhenUICloses(connection)
-    val chat = connection.getChatManager.createChat(
-      auctionId(itemId),
-      new AuctionMessageTranslator(this)
-    )
-
+    val chat = connection.getChatManager.createChat(auctionId(itemId), null)
     notToBeGCed = chat
 
-    chat.sendMessage(JoinCommandFormat)
+    val auction = new XMPPAuction(chat)
+
+    val translator = new AuctionMessageTranslator(new AuctionSniper(auction, new SniperStateDisplayer))
+    chat.addMessageListener(translator)
+    auction.join()
   }
 
   def auctionId(itemId:String) = AUCTION_ID_FORMAT.format(itemId, Constants.XMPPHostname)
 
-  override def auctionClosed() = SwingUtilities.invokeLater { ui.showStatus(Main.StatusLost) }
+  class SniperStateDisplayer extends SniperListener {
+    override def sniperLost() = SwingUtilities.invokeLater { ui.showStatus(Main.StatusLost) }
+    override def sniperBidding = SwingUtilities.invokeLater{ ui.showStatus(Main.StatusBidding) }
+  }
 
-  override def currentPrice(price: Int, increment: Int): Unit = ???
 }
 
 class MainWindow extends JFrame("AuctionSniper") {
@@ -83,8 +85,7 @@ object Main {
   val ARG_PASSWORD = 2
   val ARG_ITEM_ID = 3
 
-  def BidCommandFormat(bid: Int) = s"SOLVersion: 1.1; Command: BID; Price: $bid;"
-  val JoinCommandFormat = "SOLVersion: 1.1; Command: JOIN;"
+
 
 
   def main(args:Array[String]): Unit = main(args:_*)

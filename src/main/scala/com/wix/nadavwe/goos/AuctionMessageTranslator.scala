@@ -10,18 +10,38 @@ trait AuctionEventListener {
 
 class AuctionMessageTranslator(listener: AuctionEventListener) extends MessageListener {
 
-  private def unpackEventFrom(message: Message): Map[String, String] =
-    (for { elem <- message.getBody.split(";")
-            split = elem.split (":") }
-          yield split(0).trim -> split(1).trim).toMap
+  override def processMessage(chat: Chat, message: Message) =
+    BidEvent(message.getBody) match {
+      case BidClosed => listener.auctionClosed()
+      case BidPrice(price, increment) => listener.currentPrice(price, increment)
+    }
+}
 
+sealed abstract class BidEvent
+case object BidClosed extends BidEvent
+case class BidPrice(price:Int, increment:Int) extends BidEvent
 
-  override def processMessage(chat: Chat, message: Message) = {
-    val event: Map[String, String] = unpackEventFrom(message)
+object BidEvent {
+  private def unpackEventFrom(s: String): Map[String, String] =
+    (for (elem <- s.split(";"))
+          yield elem.split(":").map(_.trim).toTuple
+    ).toMap
+
+  private implicit class TwoElementArrayToTuple[T](a:Array[T]) {
+    def toTuple = a match {
+      case Array(key, value) => key -> value
+    }
+  }
+
+  private implicit def stringOption2Int(s:Option[String]) = s.map(_.toInt).getOrElse(0)
+
+  def apply(s: String): BidEvent = {
+    val event: Map[String, String] = unpackEventFrom(s)
     val eventType = event.get("Event")
     eventType match {
-      case Some("CLOSE") => listener.auctionClosed()
-      case Some("PRICE") => listener.currentPrice(event.get("CurrentPrice").getOrElse("0").toInt, event.get("Increment").getOrElse("0").toInt)
+      case Some("CLOSE") => BidClosed
+      case Some("PRICE") => BidPrice(event.get("CurrentPrice"), event.get("Increment"))
     }
   }
 }
+

@@ -8,11 +8,12 @@ import org.jivesoftware.smack.{Chat, ChatManagerListener, MessageListener, XMPPC
 import org.specs2.matcher.{Matcher, MustThrownMatchers}
 
 class FakeAuctionServer(val itemId:String) extends MustThrownMatchers {
+  import Constants._
   import com.wix.nadavwe.goos.Main._
   private val AUCTION_PASSWORD = "auction"
 
-  private val connection = new XMPPConnection(Constants.XMPPHostname)
-  private var currentChat:Chat = _
+  private val connection = new XMPPConnection(XMPPHostname)
+  private var currentChat: Chat = _
   private val messageListener = new SingleMessageListener()
 
   def startSellingItem() {
