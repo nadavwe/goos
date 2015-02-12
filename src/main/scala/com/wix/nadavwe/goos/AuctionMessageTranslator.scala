@@ -3,23 +3,28 @@ package com.wix.nadavwe.goos
 import org.jivesoftware.smack.packet.Message
 import org.jivesoftware.smack.{Chat, MessageListener}
 
+sealed trait PriceSource
+case object FromSniper extends PriceSource
+case object FromOtherBidder extends PriceSource
+
 trait AuctionEventListener {
-  def currentPrice(price: Int, increment: Int)
+  def currentPrice(price: Int, increment: Int, priceSource: PriceSource)
   def auctionClosed()
 }
 
-class AuctionMessageTranslator(listener: AuctionEventListener) extends MessageListener {
+class AuctionMessageTranslator(sniperId: String, listener: AuctionEventListener) extends MessageListener {
 
   override def processMessage(chat: Chat, message: Message) =
     BidEvent(message.getBody) match {
       case BidClosed => listener.auctionClosed()
-      case BidPrice(price, increment) => listener.currentPrice(price, increment)
+      case BidPrice(price, increment, `sniperId`) => listener.currentPrice(price, increment, FromSniper)
+      case BidPrice(price, increment, _) => listener.currentPrice(price, increment, FromOtherBidder)
     }
 }
 
 sealed abstract class BidEvent
 case object BidClosed extends BidEvent
-case class BidPrice(price:Int, increment:Int) extends BidEvent
+case class BidPrice(price: Int, increment: Int, bidder: String) extends BidEvent
 
 object BidEvent {
   private def unpackEventFrom(s: String): Map[String, String] =
@@ -40,7 +45,7 @@ object BidEvent {
     val eventType = event.get("Event")
     eventType match {
       case Some("CLOSE") => BidClosed
-      case Some("PRICE") => BidPrice(event.get("CurrentPrice"), event.get("Increment"))
+      case Some("PRICE") => BidPrice(event.get("CurrentPrice"), event.get("Increment"), event.get("Bidder").getOrElse(""))
     }
   }
 }

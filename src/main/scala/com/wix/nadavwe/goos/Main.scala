@@ -39,7 +39,7 @@ class Main(hostname:String, username:String, password:String) {
 
     val auction = new XMPPAuction(chat)
 
-    val translator = new AuctionMessageTranslator(new AuctionSniper(auction, new SniperStateDisplayer))
+    val translator = new AuctionMessageTranslator(connection.getUser, new AuctionSniper(auction, new SniperStateDisplayer))
     chat.addMessageListener(translator)
     auction.join()
   }
@@ -47,8 +47,16 @@ class Main(hostname:String, username:String, password:String) {
   def auctionId(itemId:String) = AUCTION_ID_FORMAT.format(itemId, Constants.XMPPHostname)
 
   class SniperStateDisplayer extends SniperListener {
-    override def sniperLost() = SwingUtilities.invokeLater { ui.showStatus(Main.StatusLost) }
-    override def sniperBidding = SwingUtilities.invokeLater{ ui.showStatus(Main.StatusBidding) }
+    override def sniperLost() = showStatus(Main.StatusLost)
+    override def sniperBidding() = showStatus(Main.StatusBidding)
+    override def sniperWinning() = showStatus(Main.StatusWinning)
+    override def sniperWon() = showStatus(Main.StatusWon)
+
+    private def showStatus(s: String) {
+      SwingUtilities.invokeLater {
+        ui.showStatus(s)
+      }
+    }
   }
 
 }
@@ -80,6 +88,7 @@ class MainWindow extends JFrame("AuctionSniper") {
 
 object Main {
 
+
   val ARG_HOSTNAME = 0
   val ARG_USERNAME = 1
   val ARG_PASSWORD = 2
@@ -100,6 +109,8 @@ object Main {
   val StatusJoining = "Joining"
   val StatusLost = "Lost"
   val StatusBidding = "Bidding"
+  val StatusWinning: String = "Winning"
+  val StatusWon: String = "Won"
 
   val ITEM_ID_AS_LOGIN = "auction-%s"
   val AUCTION_RESOURCE = "Auction"

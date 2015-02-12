@@ -6,13 +6,14 @@ import com.objogate.wl.swing.driver.{JFrameDriver, JLabelDriver}
 import com.objogate.wl.swing.gesture.GesturePerformer
 
 class ApplicationRunner {
+
   import com.wix.nadavwe.goos.ApplicationRunner._
 
   private var driver:AuctionSniperDriver = _
 
   def startBiddingIn(auction:FakeAuctionServer) {
     val thread = new Thread("Test Application") {
-    override def run {
+      override def run {
         try {
           Main.main(Constants.XMPPHostname, SNIPER_ID, SNIPER_PASSWORD, auction.itemId)
         } catch {
@@ -31,6 +32,9 @@ class ApplicationRunner {
   }
 
   def hasShownSniperIsBidding() = driver.showsSniperStatus(Main.StatusBidding)
+
+  def hasShownSniperIsWinning() = driver.showsSniperStatus(Main.StatusWinning)
+  def showsSniperHasWonAuction() = driver.showsSniperStatus(Main.StatusWon)
 
   def stop() {
     if (driver != null) {
