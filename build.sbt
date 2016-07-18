@@ -4,11 +4,6 @@ version := "1.0"
 
 scalaVersion := "2.11.4"
 
-resolvers += "Wix releases Repository" at "http://repo.dev.wix/artifactory/libs-releases"
-
-resolvers += "Wix snapshots Repository" at "http://repo.dev.wix/artifactory/libs-snapshots"
-
-
 
 
 libraryDependencies ++= Seq(
